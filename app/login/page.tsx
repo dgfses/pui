@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Shield, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,26 +17,39 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError("")
     setLoading(true)
 
-    setTimeout(() => {
-      // Admin accounts
-      if (
-        (email === "admin@uty.ac.id" && password === "admin123") ||
-        (email === "tik@uty.ac.id" && password === "admin123")
-      ) {
-        router.push("/dashboard")
-      // User/victim account — goes to inbox simulation
-      } else if (email === "budi@uty.ac.id" && password === "user123") {
-        router.push("/user")
-      } else {
-        setError("Email atau password salah.")
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || "Email atau password salah.")
         setLoading(false)
+        return
       }
-    }, 800)
+
+      // Simpan info user ke localStorage untuk session
+      localStorage.setItem("phishguard_user", JSON.stringify(data))
+
+      // Redirect berdasarkan role
+      if (data.role === "superadmin" || data.role === "admin") {
+        router.push("/dashboard")
+      } else {
+        router.push("/user")
+      }
+    } catch {
+      setError("Terjadi kesalahan jaringan. Coba lagi.")
+      setLoading(false)
+    }
   }
 
   return (
@@ -65,7 +79,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@uty.ac.id"
+                placeholder="email@uty.ac.id"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -116,10 +130,16 @@ export default function LoginPage() {
               )}
             </Button>
 
-            <div className="text-center space-y-2 mt-4">
+            <div className="text-center space-y-3 mt-4">
               <p className="text-xs text-muted-foreground bg-emerald-50 rounded-lg p-3 space-y-1">
                 <span className="block"><strong>🔑 Admin:</strong> admin@uty.ac.id / admin123</span>
                 <span className="block"><strong>👤 User:</strong> budi@uty.ac.id / user123</span>
+              </p>
+              <p className="text-sm text-emerald-700/70">
+                Belum punya akun?{" "}
+                <Link href="/register" className="text-emerald-700 hover:text-emerald-900 font-semibold transition-colors underline underline-offset-2">
+                  Daftar di sini
+                </Link>
               </p>
             </div>
           </form>
@@ -128,3 +148,4 @@ export default function LoginPage() {
     </div>
   )
 }
+
