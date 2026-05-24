@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { simulationLogs, getCampaignById, getMateriById } from "@/lib/mock-data"
+import { simulationLogs, getCampaignById, getMateriById, getTemplateById } from "@/lib/mock-data"
+import { saveSimulationResult } from "@/lib/storage"
 import { Shield, AlertTriangle, Loader2 } from "lucide-react"
 
 export default function TrackingRedirectPage() {
@@ -20,6 +21,16 @@ export default function TrackingRedirectPage() {
         if (campaign) {
           setEduUrl(`/phish/${token}`)
           setStatus("found")
+          // Save 'clicked' status to localStorage
+          const template = getTemplateById(campaign.templateId)
+          saveSimulationResult({
+            id: `sim-${token}`,
+            scenarioId: campaign.templateId,
+            scenarioName: template?.nama || campaign.name,
+            status: 'clicked',
+            startedAt: new Date().toISOString(),
+            clickedAt: new Date().toISOString(),
+          })
           // Auto redirect to phishing page after 2s
           setTimeout(() => {
             window.location.href = `/phish/${token}`

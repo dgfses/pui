@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user") // admin, superadmin, user
+  createdAt DateTime @default(now())
+}
+
+model Pegawai {
+  id         String          @id @default(cuid())
+  nama       String
+  email      String          @unique
+  departemen String
+  jabatan    String
+  createdAt  DateTime        @default(now())
+  logs       SimulationLog[]
+}
+
+model EmailTemplate {
+  id         String     @id @default(cuid())
+  nama       String
+  subject    String
+  kontenHtml String
+  tipe       String // phishing, spear-phishing, social-engineering
+  createdAt  DateTime   @default(now())
+  campaigns  Campaign[]
+}
+
+model MateriEdukasi {
+  id        String     @id @default(cuid())
+  judul     String
+  konten    String
+  tipe      String // artikel, video, infografis
+  createdAt DateTime   @default(now())
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id              String          @id @default(cuid())
+  name            String
+  templateId      String
+  template        EmailTemplate   @relation(fields: [templateId], references: [id])
+  materiEdukasiId String
+  materiEdukasi   MateriEdukasi   @relation(fields: [materiEdukasiId], references: [id])
+  status          String          @default("draft") // draft, scheduled, running, completed
+  targets         Int             @default(0)
+  openRate        Float           @default(0)
+  clickRate       Float           @default(0)
+  submissionRate  Float           @default(0)
+  scheduledDate   DateTime?
+  createdAt       DateTime        @default(now())
+  logs            SimulationLog[]
+  susResponses    SUSResponse[]
+}
+
+model SimulationLog {
+  id          String    @id @default(cuid())
+  campaignId  String
+  campaign    Campaign  @relation(fields: [campaignId], references: [id])
+  pegawaiId   String
+  pegawai     Pegawai   @relation(fields: [pegawaiId], references: [id])
+  token       String    @unique
+  status      String    @default("sent") // sent, opened, clicked, submitted
+  sentAt      DateTime  @default(now())
+  openedAt    DateTime?
+  clickedAt   DateTime?
+  submittedAt DateTime?
+  ipAddress   String?
+  userAgent   String?
+}
+
+model SUSResponse {
+  id             String   @id @default(cuid())
+  campaignId     String
+  campaign       Campaign @relation(fields: [campaignId], references: [id])
+  respondentName String
+  answers        Int[]
+  score          Float
+  createdAt      DateTime @default(now())
+}

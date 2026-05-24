@@ -1,7 +1,9 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { simulationLogs, getCampaignById, getMateriById, getPegawaiById } from "@/lib/mock-data"
+import { useEffect } from "react"
+import { simulationLogs, getCampaignById, getMateriById, getPegawaiById, getTemplateById } from "@/lib/mock-data"
+import { saveSimulationResult } from "@/lib/storage"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, AlertTriangle, BookOpen, CheckCircle2, XCircle, ExternalLink, ClipboardList } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +26,23 @@ export default function EducationPage() {
   const campaign = log ? getCampaignById(log.campaignId) : null
   const materi = campaign ? getMateriById(campaign.materiEdukasiId) : null
   const pegawai = log ? getPegawaiById(log.pegawaiId) : null
+
+  // Mark simulation as completed in localStorage
+  useEffect(() => {
+    if (campaign) {
+      const template = getTemplateById(campaign.templateId)
+      saveSimulationResult({
+        id: `sim-${token}`,
+        scenarioId: campaign.templateId,
+        scenarioName: template?.nama || campaign.name,
+        status: 'submitted',
+        startedAt: new Date().toISOString(),
+        clickedAt: new Date().toISOString(),
+        submittedAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+      })
+    }
+  }, [token, campaign])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
@@ -129,9 +148,17 @@ export default function EducationPage() {
           </Card>
         )}
 
-        <p className="text-center text-xs text-muted-foreground pb-8">
-          © {new Date().getFullYear()} PhishGuard — Universitas Teknologi Yogyakarta. Simulasi ini dilakukan untuk tujuan edukasi.
-        </p>
+        <div className="text-center pb-8 space-y-3">
+          <a
+            href="/user"
+            className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition"
+          >
+            ← Kembali ke Portal Simulasi
+          </a>
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} PhishGuard — Universitas Teknologi Yogyakarta. Simulasi ini dilakukan untuk tujuan edukasi.
+          </p>
+        </div>
       </div>
     </div>
   )

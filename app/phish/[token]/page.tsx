@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { simulationLogs, getCampaignById } from "@/lib/mock-data"
+import { simulationLogs, getCampaignById, getTemplateById } from "@/lib/mock-data"
+import { saveSimulationResult } from "@/lib/storage"
 import { Loader2 } from "lucide-react"
 
 export default function PhishingPage() {
@@ -28,8 +29,19 @@ export default function PhishingPage() {
 
     // Simulate a "processing" delay, then redirect to education page
     setTimeout(() => {
-      // In a real system, this would POST to the backend to log "submitted" status
-      // The credentials are NOT actually stored — this is a simulation
+      // Save interaction to localStorage for the user portal history
+      if (log && campaign) {
+        const template = getTemplateById(campaign.templateId)
+        saveSimulationResult({
+          id: `sim-${token}`,
+          scenarioId: campaign.templateId,
+          scenarioName: template?.nama || campaign.name,
+          status: 'submitted',
+          startedAt: new Date().toISOString(),
+          clickedAt: new Date().toISOString(),
+          submittedAt: new Date().toISOString(),
+        })
+      }
       router.push(`/edu/${token}`)
     }, 2000)
   }
@@ -135,7 +147,7 @@ export default function PhishingPage() {
 
           {/* Fake footer */}
           <p className="text-center text-[11px] text-gray-400 mt-4">
-            © 2024 Universitas Teknologi Yogyakarta. All rights reserved.
+            © 2025 Universitas Teknologi Yogyakarta. All rights reserved.
           </p>
         </div>
       </main>

@@ -44,7 +44,6 @@ const masterNav = [
 const toolsNav = [
   { title: "Laporan", href: "/laporan", icon: FileText },
   { title: "Kuesioner SUS", href: "/sus", icon: ClipboardList },
-  { title: "Security Checklist", href: "/settings", icon: Settings },
 ]
 
 export function AppSidebar() {

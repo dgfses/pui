@@ -30,7 +30,7 @@ export default function LoginPage() {
         router.push("/dashboard")
       // User/victim account — goes to inbox simulation
       } else if (email === "budi@uty.ac.id" && password === "user123") {
-        router.push("/inbox/peg-001")
+        router.push("/user")
       } else {
         setError("Email atau password salah.")
         setLoading(false)
