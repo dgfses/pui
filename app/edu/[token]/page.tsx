@@ -1,9 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { useEffect } from "react"
-import { simulationLogs, getCampaignById, getMateriById, getPegawaiById, getTemplateById } from "@/lib/mock-data"
-import { saveSimulationResult } from "@/lib/storage"
+import { simulationLogs, getCampaignById, getMateriById, getPegawaiById } from "@/lib/mock-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, AlertTriangle, BookOpen, CheckCircle2, XCircle, ExternalLink, ClipboardList } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -26,23 +24,6 @@ export default function EducationPage() {
   const campaign = log ? getCampaignById(log.campaignId) : null
   const materi = campaign ? getMateriById(campaign.materiEdukasiId) : null
   const pegawai = log ? getPegawaiById(log.pegawaiId) : null
-
-  // Mark simulation as completed in localStorage
-  useEffect(() => {
-    if (campaign) {
-      const template = getTemplateById(campaign.templateId)
-      saveSimulationResult({
-        id: `sim-${token}`,
-        scenarioId: campaign.templateId,
-        scenarioName: template?.nama || campaign.name,
-        status: 'submitted',
-        startedAt: new Date().toISOString(),
-        clickedAt: new Date().toISOString(),
-        submittedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-      })
-    }
-  }, [token, campaign])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">

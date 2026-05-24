@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { simulationLogs, getCampaignById, getTemplateById } from "@/lib/mock-data"
-import { saveSimulationResult } from "@/lib/storage"
+import { simulationLogs, getCampaignById } from "@/lib/mock-data"
 import { Loader2 } from "lucide-react"
 
 export default function PhishingPage() {
@@ -18,7 +17,7 @@ export default function PhishingPage() {
   const log = simulationLogs.find((l) => l.token === token)
   const campaign = log ? getCampaignById(log.campaignId) : null
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email || !password) {
       setError("Silakan masukkan email dan password Anda.")
@@ -27,21 +26,15 @@ export default function PhishingPage() {
     setSubmitting(true)
     setError("")
 
-    // Simulate a "processing" delay, then redirect to education page
+    // Simpan 'submitted' ke database secara permanen
+    try {
+      await fetch(`/api/submit/${token}`, { method: "POST" })
+    } catch (err) {
+      console.error("Failed to record submission:", err)
+    }
+
+    // Redirect ke halaman edukasi setelah 2 detik
     setTimeout(() => {
-      // Save interaction to localStorage for the user portal history
-      if (log && campaign) {
-        const template = getTemplateById(campaign.templateId)
-        saveSimulationResult({
-          id: `sim-${token}`,
-          scenarioId: campaign.templateId,
-          scenarioName: template?.nama || campaign.name,
-          status: 'submitted',
-          startedAt: new Date().toISOString(),
-          clickedAt: new Date().toISOString(),
-          submittedAt: new Date().toISOString(),
-        })
-      }
       router.push(`/edu/${token}`)
     }, 2000)
   }

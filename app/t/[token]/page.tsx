@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { simulationLogs, getCampaignById, getMateriById, getTemplateById } from "@/lib/mock-data"
-import { saveSimulationResult } from "@/lib/storage"
+import { simulationLogs, getCampaignById } from "@/lib/mock-data"
 import { Shield, AlertTriangle, Loader2 } from "lucide-react"
 
 export default function TrackingRedirectPage() {
@@ -13,25 +12,22 @@ export default function TrackingRedirectPage() {
   const [eduUrl, setEduUrl] = useState("")
 
   useEffect(() => {
-    // Simulate tracking: look up token, update status, redirect
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       const log = simulationLogs.find((l) => l.token === token)
       if (log) {
         const campaign = getCampaignById(log.campaignId)
         if (campaign) {
           setEduUrl(`/phish/${token}`)
           setStatus("found")
-          // Save 'clicked' status to localStorage
-          const template = getTemplateById(campaign.templateId)
-          saveSimulationResult({
-            id: `sim-${token}`,
-            scenarioId: campaign.templateId,
-            scenarioName: template?.nama || campaign.name,
-            status: 'clicked',
-            startedAt: new Date().toISOString(),
-            clickedAt: new Date().toISOString(),
-          })
-          // Auto redirect to phishing page after 2s
+
+          // Simpan 'clicked' ke database secara permanen
+          try {
+            await fetch(`/api/track/${token}`, { method: "POST" })
+          } catch (e) {
+            console.error("Failed to track click:", e)
+          }
+
+          // Auto redirect ke halaman phishing setelah 2 detik
           setTimeout(() => {
             window.location.href = `/phish/${token}`
           }, 2000)
